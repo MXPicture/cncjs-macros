@@ -1,0 +1,68 @@
+(start with the end mill 15mm ABOVE the plate, about 15mm or less from bottom left corner.)
+
+; Set user-defined variables
+%PROBE_DIAMETER = 2 ;in millimeters
+
+%CYLINDER_HEIGHT = 10 ;Thickness of 3-axis probe in Z direction
+%CYLINDER_DIAMETER = 4 ;Diameter of probe
+%PREPARE_X = 6 ;Left/right before probe
+%PREPARE_Y = 6 ;Y before probe
+%PREPARE_Z = 5 ;Down before X/Y probe
+%PROBE_X = 20 ;Left/right probe
+%PROBE_Y = 20 ;back probe
+%PROBE_Z = 20 ;down probe
+%CLEARANCE = 3
+
+G21 ;make sure we’re in mm
+G91 ;Incremental mode
+
+; probe Z
+G38.2 Z-[PROBE_Z] F75 ;Probe Z
+G0 Z2 ;lift 2mm
+G38.2 Z-[PROBE_Z] F45
+G4 P0.1
+G10 L20 P1 Z[CYLINDER_HEIGHT] ;Set Current Z as plate thickness
+G4 P0.1
+G0 Z[CLEARANCE] ;lift Z
+
+; probe X left
+G0 X-[PREPARE_X] ;Move left
+G0 Z-[PREPARE_Z+CLEARANCE] ;Move down
+G38.2 X[PROBE_X] F75 ;Probe X to the right
+G0 X-2
+G38.2 X[PROBE_X] F45 ;Probe X to the right
+G4 P0.1
+G10 L20 P1 X0 ;Set current X location as 0 (only temporary)
+G4 P0.1
+G0 X-[CLEARANCE] ;Move left
+G0 Z[PREPARE_Z+CLEARANCE] ;lift Z
+G0 X[CYLINDER_DIAMETER/2+CLEARANCE] ;Move right
+
+; probe X right
+G0 X[PREPARE_X] ;Move right
+G0 Z-[PREPARE_Z+CLEARANCE] ;Move down
+G38.2 X-[PROBE_X] F75 ;Probe X to the left
+G0 X2
+G38.2 X-[PROBE_X] F45 ;Probe X to the left
+G4 P0.1
+%TEMP_X = posx
+G10 L20 P1 X[TEMP_X/2] ;Set current X location as negative half the distance between X left & X right
+G4 P0.1
+G0 X[CLEARANCE] ;Move right
+G0 Z[PREPARE_Z+CLEARANCE] ;lift Z
+G0 X-[CYLINDER_DIAMETER/2+CLEARANCE] ;Move left
+G90 G0 X0 ;Move X to center (absolute)
+G91 ;incremental
+
+; probe Y
+G0 Y-[PREPARE_Y] ;Move back
+G0 Z-[PREPARE_Z+CLEARANCE] ;Move down
+G38.2 Y[PROBE_Y] F75 ;Probe Y to the front
+G0 Y-2
+G38.2 Y[PROBE_Y] F75 ;Probe Y to the front
+G4 P0.1
+G10 L20 P1 Y[PROBE_DIAMETER/2 +CYLINDER_DIAMETER/2]
+G4 P0.1
+G0 Y-[CLEARANCE] ;Move back
+G0 Z[PREPARE_Z+CLEARANCE] ;lift Z
+G90 G0 Y0 ;Move Y to center (absolute)
